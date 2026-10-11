@@ -1,0 +1,163 @@
+# terminalのリロード
+alias reload='exec $SHELL -l'
+
+#=========================SLAM===============================
+# SLAM実行
+alias lidarslam='ros2 launch lidarslam lidarslam.launch.py'
+
+# .pcdマップの保存（lidarslamを実行中に使う）デフォルト名は年月日時刻
+alias savemap='save_map_gui'
+# alias savemap_cli='save_map'
+
+# params変更
+alias slam_params='code ~/ros2_ws/src/lidarslam_ros2/lidarslam/param/lidarslam.yaml'
+
+
+
+#========================Localization=========================
+# .pcdマップを用いてMatching実行（whill_odometry、NDT、EKF を起動）
+alias localization='scanmatch'
+
+# params変更
+alias lclz_params='code ~/ros2_ws/src/lidar_localization/param/localization.yaml'
+alias ekf_params='code ~/ros2_ws/src/ekf_localizer/param/ekf.yaml'
+
+
+
+#=========================Odometry============================
+# WHILL の motor_speed から /wheelchair/odom を配信（単体起動）
+alias odometry='ros2 launch whill_odometry odometry.launch.py'
+
+# params変更
+alias odom_params='code ~/ros2_ws/src/whill_odometry/config/odometry.yaml'
+
+
+
+
+# ======================FUNCTION==============================
+# Saves the map and pose_graph from ROS2 to /root/map/ with a user-specified name (CLI version).
+# Default filename is the current timestamp.
+save_map_cli() {
+  # 1. Define the destination directory.
+  local save_dir="/root/map"
+  mkdir -p "$save_dir"
+
+  # 2. Call the ROS2 service to save the map.
+  echo "Calling ROS2 service to save map and pose_graph..."
+  ros2 service call /map_save std_srvs/srv/Empty
+
+  # 3. Check if both files were created.
+  local pcd_original="./map.pcd"
+  local g2o_original="./pose_graph.g2o"
+  sleep 1
+
+  if [ ! -f "$pcd_original" ] || [ ! -f "$g2o_original" ]; then
+    echo "Error: Failed to generate map.pcd or pose_graph.g2o."
+    rm -f "$pcd_original" "$g2o_original"
+    return 1
+  fi
+
+  # 4. Generate a default filename from the current date and time.
+  local default_name=$(date +%Y%m%d-%H%M%S)
+  
+  # 5. Prompt the user for a base filename, showing the default.
+  local base_name
+  read -p "Enter the base filename (default: ${default_name}): " base_name
+
+  # If the input is empty, use the default name.
+  if [ -z "$base_name" ]; then
+    base_name=${default_name}
+    echo "No name entered. Using default: ${base_name}"
+  fi
+
+  # 6. Rename and move both files to the fixed directory.
+  mv -v "$pcd_original" "${save_dir}/${base_name}.pcd"
+  mv -v "$g2o_original" "${save_dir}/${base_name}.g2o"
+  
+  echo "Map and pose_graph saved successfully."
+  echo "--> ${save_dir}/${base_name}.pcd"
+  echo "--> ${save_dir}/${base_name}.g2o"
+}
+
+# Saves the map and pose_graph from ROS2 using a GUI file dialog.
+# This requires the Docker container to be run with X11 forwarding options.
+save_map_gui() {
+  # 1. Define the destination directory (this is just a fallback, user will choose).
+  local default_dir="/root/map"
+  mkdir -p "$default_dir"
+
+  # 2. Call the ROS2 service to save the map.
+  echo "Calling ROS2 service to save map and pose_graph..."
+  ros2 service call /map_save std_srvs/srv/Empty
+
+  # 3. Check if both files were created.
+  local pcd_original="./map.pcd"
+  local g2o_original="./pose_graph.g2o"
+  sleep 1
+
+  if [ ! -f "$pcd_original" ] || [ ! -f "$g2o_original" ]; then
+    zenity --error --text="Failed to generate map.pcd or pose_graph.g2o."
+    rm -f "$pcd_original" "$g2o_original"
+    return 1
+  fi
+
+  # 4. Generate a default filename from the current date and time.
+  local default_name=$(date +%Y%m%d-%H%M%S)
+
+  # 5. Open a GUI "Save File" dialog.
+  # This is the part that functions like RViz2.
+  local full_path=$(zenity --file-selection --save --confirm-overwrite \
+    --title="Save Map and Pose Graph" \
+    --filename="${default_dir}/${default_name}.pcd")
+
+  # 6. If the user provided a path and clicked OK, proceed.
+  if [ $? -eq 0 ] && [ -n "$full_path" ]; then
+    # 7. Extract the base path and name (e.g., "/path/to/mymap" from "/path/to/mymap.pcd").
+    local base_name="${full_path%.*}"
+
+    # 8. Rename and move both files to the chosen location.
+    mv -v "$pcd_original" "${base_name}.pcd"
+    mv -v "$g2o_original" "${base_name}.g2o"
+    
+    zenity --info --text="Map and pose_graph saved successfully.\n\nSaved to:\n${base_name}.pcd\n${base_name}.g2o"
+  else
+    # Otherwise, cancel the operation.
+    zenity --warning --text="Operation canceled.\nTemporary files will be deleted."
+    rm "$pcd_original" "$g2o_original"
+  fi
+}
+
+scanmatch_cli() {
+  # Check if a file path argument was provided.
+  if [ -z "$1" ]; then
+    echo "Error: Please specify the path to the PCD file."
+    echo "Usage: scanmatch_cli /path/to/your/map.pcd"
+    return 1
+  fi
+
+  # Launch whill_odometry, NDT and EKF (localization_bringup, env:=real) with the given map.
+  ros2 launch localization_bringup localization.launch.py env:=real map_path:="$1"
+}
+
+scanmatch(){
+  # Use Zenity to display a file selection dialog for PCD files
+  # --filename sets the default directory
+  PCD_FILE=$(zenity --file-selection \
+    --title="Please select a PCD map file" \
+    --filename="/root/map/" \
+    --file-filter="*.pcd")
+
+  # Check if the user pressed "Cancel" or did not select a file
+  if [ $? -ne 0 ] || [ -z "$PCD_FILE" ]; then
+      zenity --warning --text="No file was selected. Aborting."
+      # return (not exit) so that the terminal is not closed
+      return 1
+  fi
+
+  # If a file was selected, show a confirmation message
+  zenity --info --text="Starting localization with the following map:\n\n${PCD_FILE}"
+
+  # Launch whill_odometry, NDT and EKF (localization_bringup, env:=real) with the selected map.
+  ros2 launch localization_bringup localization.launch.py env:=real map_path:="${PCD_FILE}"
+}
+

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Jazzy の ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST 相当を Humble で再現（UDPのみ） -->
+<profiles xmlns="http://www.eprosima.com/XMLSchemas/fastRTPS_Profiles">
+  <transport_descriptors>
+    <transport_descriptor>
+      <transport_id>udp_local_discovery</transport_id>
+      <type>UDPv4</type>
+      <maxInitialPeersRange>32</maxInitialPeersRange>
+      <interfaceWhiteList><address>127.0.0.1</address></interfaceWhiteList>
+    </transport_descriptor>
+  </transport_descriptors>
+  <participant profile_name="localhost_discovery" is_default_profile="true">
+    <rtps>
+      <userTransports><transport_id>udp_local_discovery</transport_id></userTransports>
+      <useBuiltinTransports>false</useBuiltinTransports>
+      <builtin>
+        <metatrafficUnicastLocatorList>
+          <locator><udpv4/></locator>
+        </metatrafficUnicastLocatorList>
+        <initialPeersList>
+          <locator><udpv4><address>127.0.0.1</address></udpv4></locator>
+        </initialPeersList>
+      </builtin>
+    </rtps>
+  </participant>
+</profiles>
