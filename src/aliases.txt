@@ -35,11 +35,11 @@ alias odom_params='code ~/ros2_ws/src/whill_odometry/config/odometry.yaml'
 
 
 # ======================FUNCTION==============================
-# Saves the map and pose_graph from ROS2 to /root/map/ with a user-specified name (CLI version).
+# Saves the map and pose_graph from ROS2 to /root/ros2_ws/map/ with a user-specified name (CLI version).
 # Default filename is the current timestamp.
 save_map_cli() {
   # 1. Define the destination directory.
-  local save_dir="/root/map"
+  local save_dir="/root/ros2_ws/map"
   mkdir -p "$save_dir"
 
   # 2. Call the ROS2 service to save the map.
@@ -83,7 +83,7 @@ save_map_cli() {
 # This requires the Docker container to be run with X11 forwarding options.
 save_map_gui() {
   # 1. Define the destination directory (this is just a fallback, user will choose).
-  local default_dir="/root/map"
+  local default_dir="/root/ros2_ws/map"
   mkdir -p "$default_dir"
 
   # 2. Call the ROS2 service to save the map.
@@ -145,7 +145,7 @@ scanmatch(){
   # --filename sets the default directory
   PCD_FILE=$(zenity --file-selection \
     --title="Please select a PCD map file" \
-    --filename="/root/map/" \
+    --filename="/root/ros2_ws/map/" \
     --file-filter="*.pcd")
 
   # Check if the user pressed "Cancel" or did not select a file

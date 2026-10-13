@@ -18,7 +18,8 @@ NDT + EKF（ekf_localizer / robot_localization）Localizer using Velodyne VLP-16
   `estimator:=robot_localization` を付けると、`ekf_localizer` の代わりに robot_localization(2 段 EKF)で推定する
 * `localization_bringup` だけ別のブランチを取得できる build-arg `BRINGUP_BRANCH` を追加(既定は開発中の `robot_localization`)
 * [localization_tools](https://github.com/MaeharaTakumi/localization_tools) を `/root/localization_tools` に入れた(build-arg `TOOLS_BRANCH`、既定 `main`)
-* 録画と図の置き場所 `/root/ros2_ws/bags/{gazebo,real}`・`/root/ros2_ws/fig` を作る(`COLCON_IGNORE` 入り。下記)
+* 地図・録画・図の置き場所 `/root/ros2_ws/map`・`/root/ros2_ws/bags/{gazebo,real}`・`/root/ros2_ws/fig` を作る(`COLCON_IGNORE` 入り。下記)。
+  `savemap` の保存先と `localization` の地図選択の初期フォルダも `/root/ros2_ws/map`
 * `.bashrc` の通信設定の既定を Gazebo 用にした
 * イメージ名 `localizer_rl:latest` / コンテナ名 `localizer_rl`(localizer_ekf・whill_localizer と並べて使える。
   同時に自己位置推定を動かすと同じ ROS_DOMAIN_ID でぶつかるので、動かすのは 1 つだけにする)
@@ -77,11 +78,12 @@ docker build -t localizer_rl:latest --build-arg REPO_OWNER=<GitHubユーザー�
 docker compose build --build-arg BRINGUP_BRANCH=humble && docker compose up -d
 ```
 
-## 録画と図(コンテナを作り直す前に退避する)
-録画は `/root/ros2_ws/bags/gazebo`(Gazebo)・`/root/ros2_ws/bags/real`(実機)、図は `/root/ros2_ws/fig`
+## 地図・録画・図(コンテナを作り直す前に退避する)
+地図は `/root/ros2_ws/map`、録画は `/root/ros2_ws/bags/gazebo`(Gazebo)・`/root/ros2_ws/bags/real`(実機)、図は `/root/ros2_ws/fig`
 (`localization_tools` の `eval/bag_paths.py`)。**コンテナの中なので、`docker compose up --build` などでコンテナを作り直すと消える**
-(`docker stop`・`start` では残る)。作り直す前にホストへ写す:
+(`docker stop`・`start` では残る。地図はイメージに入っていない)。作り直す前にホストへ写し、作り直したら戻す:
 ```
+docker cp localizer_rl:/root/ros2_ws/map <ホストの退避先>/
 docker cp localizer_rl:/root/ros2_ws/bags <ホストの退避先>/
 docker cp localizer_rl:/root/ros2_ws/fig <ホストの退避先>/
 ```
