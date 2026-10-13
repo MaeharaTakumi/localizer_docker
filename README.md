@@ -10,12 +10,15 @@ NDT + EKF（ekf_localizer / robot_localization）Localizer using Velodyne VLP-16
 |[MaeharaTakumi/lidar_localization](https://github.com/MaeharaTakumi/lidar_localization)|humble|`pcl_localization_ros2`(NDT)|
 |[MaeharaTakumi/whill_odometry](https://github.com/MaeharaTakumi/whill_odometry)|humble|`whill_odometry`|
 |[MaeharaTakumi/ekf_localizer](https://github.com/MaeharaTakumi/ekf_localizer)|humble|`ekf_localizer`(EKF)|
-|[MaeharaTakumi/localization_bringup](https://github.com/MaeharaTakumi/localization_bringup)|humble|`localization_bringup`(NDT・EKF・whill_odometry を環境ごとの設定で起動)|
+|[MaeharaTakumi/localization_bringup](https://github.com/MaeharaTakumi/localization_bringup)|robot_localization|`localization_bringup`(NDT・EKF・whill_odometry を環境ごとの設定で起動)|
+|[MaeharaTakumi/localization_tools](https://github.com/MaeharaTakumi/localization_tools)|main|ROS のパッケージではない。`/root/localization_tools`(検証・調整・描画・Gazebo と実機のテスト走行と録画)|
 
 ### ベース(localizer_ekf_docker)からの主な変更点
 * `ros-humble-robot-localization` を入れた。`localization_bringup` の `robot_localization` ブランチで
   `estimator:=robot_localization` を付けると、`ekf_localizer` の代わりに robot_localization(2 段 EKF)で推定する
-* `localization_bringup` だけ別のブランチを取得できる build-arg `BRINGUP_BRANCH` を追加(既定は `humble`)
+* `localization_bringup` だけ別のブランチを取得できる build-arg `BRINGUP_BRANCH` を追加(既定は開発中の `robot_localization`)
+* [localization_tools](https://github.com/MaeharaTakumi/localization_tools) を `/root/localization_tools` に入れた(build-arg `TOOLS_BRANCH`、既定 `main`)
+* 録画と図の置き場所 `/root/ros2_ws/bags/{gazebo,real}`・`/root/ros2_ws/fig` を作る(`COLCON_IGNORE` 入り。下記)
 * `.bashrc` の通信設定の既定を Gazebo 用にした
 * イメージ名 `localizer_rl:latest` / コンテナ名 `localizer_rl`(localizer_ekf・whill_localizer と並べて使える。
   同時に自己位置推定を動かすと同じ ROS_DOMAIN_ID でぶつかるので、動かすのは 1 つだけにする)
@@ -59,7 +62,7 @@ xhost +local:
 ```
 
 ## リポジトリを更新したとき
-もう一度ビルドすると、各リポジトリの `humble` ブランチの最新コミットが取り込まれる
+もう一度ビルドすると、各リポジトリのブランチ(`humble`、`localization_bringup` は `robot_localization`、`localization_tools` は `main`)の最新コミットが取り込まれる
 (コミットが変わっていなければキャッシュが使われ、すぐ終わる)
 ```
 docker compose up -d --build
@@ -69,9 +72,18 @@ docker compose up -d --build
 ```
 docker build -t localizer_rl:latest --build-arg REPO_OWNER=<GitHubユーザー名> --build-arg REPO_BRANCH=<ブランチ名> .
 ```
-`localization_bringup` だけ別のブランチにする場合(例: robot_localization ブランチを GitHub に push したあと):
+`localization_bringup` だけ別のブランチにする場合(例: `humble` に戻す):
 ```
-docker compose build --build-arg BRINGUP_BRANCH=robot_localization && docker compose up -d
+docker compose build --build-arg BRINGUP_BRANCH=humble && docker compose up -d
+```
+
+## 録画と図(コンテナを作り直す前に退避する)
+録画は `/root/ros2_ws/bags/gazebo`(Gazebo)・`/root/ros2_ws/bags/real`(実機)、図は `/root/ros2_ws/fig`
+(`localization_tools` の `eval/bag_paths.py`)。**コンテナの中なので、`docker compose up --build` などでコンテナを作り直すと消える**
+(`docker stop`・`start` では残る)。作り直す前にホストへ写す:
+```
+docker cp localizer_rl:/root/ros2_ws/bags <ホストの退避先>/
+docker cp localizer_rl:/root/ros2_ws/fig <ホストの退避先>/
 ```
 
 # 実行可能コマンド一覧
@@ -79,7 +91,7 @@ docker compose build --build-arg BRINGUP_BRANCH=robot_localization && docker com
 |:------|:-----|:---|
 |`lidarslam`|NDT-SLAMを実行||
 |`savemap`|MAP(.pcd)を保存|`lidarslam`実行中に別terminalで実行する|
-|`localization`|MAPを選んで自己位置推定を実行|whill_odometry・NDT・EKF を起動する(実機用)|
+|`localization`|MAPを選んで自己位置推定を実行|whill_odometry・NDT・EKF を起動する(実機用)。車椅子は `WHILL=red localization` のように色を付ける(既定は `real.yaml` の `blue`)|
 |`odometry`|`whill_odometry` のみを起動||
 |`slam_params`|SLAM parameterを確認/編集*|保存後の次回起動時に反映される|
 |`lclz_params`|Matching(NDT) parameterを確認/編集*|保存後の次回起動時に反映される|
@@ -91,9 +103,10 @@ docker compose build --build-arg BRINGUP_BRANCH=robot_localization && docker com
 
 ## トピックの流れ(localization 実行時)
 ```
-whill_node (WHILL側) ── /Drp5_whill_red/whill_node/motor_speed_ts ──▶ whill_odometry ── /wheelchair/odom ──▶ ekf_localizer ──▶ /ekf_pose, TF(map→base_link)
+whill_node (WHILL側) ── /Drp5_whill_<色>/whill_node/motor_speed_ts ──▶ whill_odometry ── /wheelchair/odom ──▶ ekf_localizer ──▶ /ekf_pose, TF(map→base_link)
 VLP-16 ── /velodyne_points ──▶ cloud_stamp_corrector ── /localization/points ──▶ pcl_localization ── /ndt_pose ──▶ ekf_localizer
 ```
+車椅子の色(`blue`・`red`・`white`)は launch の `whill:=<色>`(既定は `real.yaml` の `blue`)。
 トピック名・フレーム名などの環境ごとの設定は `localization_bringup` の `param/env/real.yaml` で変更する
 (詳細は [localization_bringup](https://github.com/MaeharaTakumi/localization_bringup))
 
