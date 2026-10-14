@@ -21,7 +21,7 @@ NDT + EKF（ekf_localizer / robot_localization）Localizer using Velodyne VLP-16
 * 地図・録画・図の置き場所 `/root/ros2_ws/map`・`/root/ros2_ws/bags/{gazebo,real}`・`/root/ros2_ws/fig` を作る(`COLCON_IGNORE` 入り。下記)。
   `savemap` の保存先と `localization` の地図選択の初期フォルダも `/root/ros2_ws/map`
 * `.bashrc` の通信設定の既定を Gazebo 用にした
-* イメージ名 `localizer_rl:latest` / コンテナ名 `localizer_rl`(localizer_ekf・whill_localizer と並べて使える。
+* イメージ名 `localizer_rl:latest` / コンテナ名 `test_maehara`(localizer_ekf・whill_localizer と並べて使える。
   同時に自己位置推定を動かすと同じ ROS_DOMAIN_ID でぶつかるので、動かすのは 1 つだけにする)
 
 ## 2026/02/20現在で確認している不具合
@@ -46,7 +46,7 @@ docker compose up -d --build
 ```
 コンテナに入る:
 ```
-docker exec -it localizer_rl bash
+docker exec -it test_maehara bash
 ```
 
 ### (docker compose を使わない場合)
@@ -54,7 +54,7 @@ docker exec -it localizer_rl bash
 docker build -t localizer_rl:latest .
 ```
 ```
-docker run -itd --ipc=host --gpus=all --env="NVIDIA_DRIVER_CAPABILITIES=all" --net host --privileged -e DISPLAY=unix${DISPLAY} -e NVIDIA_VISIBLE_DEVICES=0 -v /tmp/.X11-unix:/tmp/.X11-unix --name localizer_rl localizer_rl:latest
+docker run -itd --ipc=host --gpus=all --env="NVIDIA_DRIVER_CAPABILITIES=all" --net host --privileged -e DISPLAY=unix${DISPLAY} -e NVIDIA_VISIBLE_DEVICES=0 -v /tmp/.X11-unix:/tmp/.X11-unix --name test_maehara localizer_rl:latest
 ```
 
 ## Host側の.bashrc に以下を追記:
@@ -81,11 +81,13 @@ docker compose build --build-arg BRINGUP_BRANCH=humble && docker compose up -d
 ## 地図・録画・図(コンテナを作り直す前に退避する)
 地図は `/root/ros2_ws/map`、録画は `/root/ros2_ws/bags/gazebo`(Gazebo)・`/root/ros2_ws/bags/real`(実機)、図は `/root/ros2_ws/fig`
 (`localization_tools` の `eval/bag_paths.py`)。**コンテナの中なので、`docker compose up --build` などでコンテナを作り直すと消える**
-(`docker stop`・`start` では残る。地図はイメージに入っていない)。作り直す前にホストへ写し、作り直したら戻す:
+(`docker stop`・`start` では残る。地図はイメージに入っていない)。作り直す前にホストへ写し、作り直したら戻す。
+2026-10-14 にコンテナ名を `localizer_rl` から `test_maehara` に `docker rename` で変えたので、そのとき動いていたコンテナは
+次の `docker compose up -d` で作り直される(compose の設定と名前が違うため):
 ```
-docker cp localizer_rl:/root/ros2_ws/map <ホストの退避先>/
-docker cp localizer_rl:/root/ros2_ws/bags <ホストの退避先>/
-docker cp localizer_rl:/root/ros2_ws/fig <ホストの退避先>/
+docker cp test_maehara:/root/ros2_ws/map <ホストの退避先>/
+docker cp test_maehara:/root/ros2_ws/bags <ホストの退避先>/
+docker cp test_maehara:/root/ros2_ws/fig <ホストの退避先>/
 ```
 
 # 実行可能コマンド一覧
@@ -151,10 +153,10 @@ https://github.com/MaeharaTakumi/lidar_localization#params
 `~/ros2_ws/src` の各リポジトリは、pull は HTTPS(鍵不要)、push は SSH(`git@github.com:MaeharaTakumi/...`)に設定してある。
 push するにはコンテナ内に GitHub 用の SSH 鍵が必要(例: ホストの鍵をコピー)
 ```
-docker exec localizer_rl mkdir -p /root/.ssh
+docker exec test_maehara mkdir -p /root/.ssh
 ```
 ```
-docker cp ~/.ssh/id_ed25519 localizer_rl:/root/.ssh/id_ed25519
+docker cp ~/.ssh/id_ed25519 test_maehara:/root/.ssh/id_ed25519
 ```
 
 

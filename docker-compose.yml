@@ -1,6 +1,6 @@
 # docker run -itd --ipc=host --gpus=all --env="NVIDIA_DRIVER_CAPABILITIES=all" --net host --privileged \
 #   -e DISPLAY=unix${DISPLAY} -e NVIDIA_VISIBLE_DEVICES=0 -v /tmp/.X11-unix:/tmp/.X11-unix \
-#   --name localizer_rl localizer_rl:latest
+#   --name test_maehara localizer_rl:latest
 # と同じ設定
 name: localizer_rl
 services:
@@ -8,7 +8,7 @@ services:
     build:
       context: .
     image: localizer_rl:latest
-    container_name: localizer_rl
+    container_name: test_maehara
     stdin_open: true
     tty: true
     ipc: host
