@@ -5,7 +5,8 @@ ARG REPO_OWNER=MaeharaTakumi
 ARG REPO_BRANCH=humble
 # localization_bringup だけ別のブランチにする（開発中の robot_localization ブランチ。humble は --build-arg BRINGUP_BRANCH=humble）
 ARG BRINGUP_BRANCH=robot_localization
-# 検証・調整・描画・テスト走行のツール（ROS のパッケージではないので /root/localization_tools に置く）
+# 検証・調整・描画・テスト走行のツール（ROS のパッケージではないので src の外の /root/ros2_ws/localization_tools に置く。
+# リポジトリに COLCON_IGNORE があるので colcon は中を探さない）
 ARG TOOLS_BRANCH=main
 
 # ============================================================
@@ -113,8 +114,8 @@ RUN cd /root/ros2_ws && \
 # ---------- 検証・調整・描画・テスト走行のツール ----------
 ARG TOOLS_BRANCH
 RUN --mount=type=bind,from=repo_rev,target=/tmp/repo_rev \
-    git clone -b ${TOOLS_BRANCH} https://github.com/${REPO_OWNER}/localization_tools.git /root/localization_tools && \
-    git -C /root/localization_tools remote set-url --push origin git@github.com:${REPO_OWNER}/localization_tools.git
+    git clone -b ${TOOLS_BRANCH} https://github.com/${REPO_OWNER}/localization_tools.git /root/ros2_ws/localization_tools && \
+    git -C /root/ros2_ws/localization_tools remote set-url --push origin git@github.com:${REPO_OWNER}/localization_tools.git
 
 # ---------- 地図・録画・図の置き場所（地図は savemap・localization、録画と図は localization_tools の eval/bag_paths.py） ----------
 # ros2_ws の下に置くので、colcon が中を探さないよう COLCON_IGNORE を置く。コンテナの中なので、作り直すと消える

@@ -11,13 +11,13 @@ NDT + EKF（ekf_localizer / robot_localization）Localizer using Velodyne VLP-16
 |[MaeharaTakumi/whill_odometry](https://github.com/MaeharaTakumi/whill_odometry)|humble|`whill_odometry`|
 |[MaeharaTakumi/ekf_localizer](https://github.com/MaeharaTakumi/ekf_localizer)|humble|`ekf_localizer`(EKF)|
 |[MaeharaTakumi/localization_bringup](https://github.com/MaeharaTakumi/localization_bringup)|robot_localization|`localization_bringup`(NDT・EKF・whill_odometry を環境ごとの設定で起動)|
-|[MaeharaTakumi/localization_tools](https://github.com/MaeharaTakumi/localization_tools)|main|ROS のパッケージではない。`/root/localization_tools`(検証・調整・描画・Gazebo と実機のテスト走行と録画)|
+|[MaeharaTakumi/localization_tools](https://github.com/MaeharaTakumi/localization_tools)|main|ROS のパッケージではない。`/root/ros2_ws/localization_tools`(検証・調整・描画・Gazebo と実機のテスト走行と録画)|
 
 ### ベース(localizer_ekf_docker)からの主な変更点
 * `ros-humble-robot-localization` を入れた。`localization_bringup` の `robot_localization` ブランチで
   `estimator:=robot_localization` を付けると、`ekf_localizer` の代わりに robot_localization(2 段 EKF)で推定する
 * `localization_bringup` だけ別のブランチを取得できる build-arg `BRINGUP_BRANCH` を追加(既定は開発中の `robot_localization`)
-* [localization_tools](https://github.com/MaeharaTakumi/localization_tools) を `/root/localization_tools` に入れた(build-arg `TOOLS_BRANCH`、既定 `main`)
+* [localization_tools](https://github.com/MaeharaTakumi/localization_tools) を `/root/ros2_ws/localization_tools` に入れた(build-arg `TOOLS_BRANCH`、既定 `main`)
 * 地図・録画・図の置き場所 `/root/ros2_ws/map`・`/root/ros2_ws/bags/{gazebo,real}`・`/root/ros2_ws/fig` を作る(`COLCON_IGNORE` 入り。下記)。
   `savemap` の保存先と `localization` の地図選択の初期フォルダも `/root/ros2_ws/map`
 * `.bashrc` の通信設定の既定を Gazebo 用にした
