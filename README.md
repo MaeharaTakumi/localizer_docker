@@ -18,7 +18,8 @@ NDT + EKF（ekf_localizer / robot_localization）Localizer using Velodyne VLP-16
   `estimator:=robot_localization` を付けると、`ekf_localizer` の代わりに robot_localization(2 段 EKF)で推定する
 * `localization_bringup` だけ別のブランチを取得できる build-arg `BRINGUP_BRANCH` を追加(既定は開発中の `robot_localization`)
 * [localization_tools](https://github.com/MaeharaTakumi/localization_tools) を `/root/ros2_ws/localization_tools` に入れた(build-arg `TOOLS_BRANCH`、既定 `main`)
-* 地図・録画・図の置き場所 `/root/ros2_ws/map`・`/root/ros2_ws/bags/{gazebo,real}`・`/root/ros2_ws/fig` を作る(`COLCON_IGNORE` 入り。下記)。
+* 地図・録画・図の置き場所 `/root/ros2_ws/map`・`/root/ros2_ws/bags/{gazebo,real}`・`/root/ros2_ws/fig` を作る(`COLCON_IGNORE` 入り)。
+  `docker-compose.yml` ではホストの `data/` を割り当てるので、コンテナを作り直しても消えない(下記)。
   `savemap` の保存先と `localization` の地図選択の初期フォルダも `/root/ros2_ws/map`
 * `.bashrc` の通信設定の既定を Gazebo 用にした
 * イメージ名 `localizer_rl:latest` / コンテナ名 `test_maehara`(localizer_ekf・whill_localizer と並べて使える。
@@ -54,7 +55,7 @@ docker exec -it test_maehara bash
 docker build -t localizer_rl:latest .
 ```
 ```
-docker run -itd --ipc=host --gpus=all --env="NVIDIA_DRIVER_CAPABILITIES=all" --net host --privileged -e DISPLAY=unix${DISPLAY} -e NVIDIA_VISIBLE_DEVICES=0 -v /tmp/.X11-unix:/tmp/.X11-unix --name test_maehara localizer_rl:latest
+docker run -itd --ipc=host --gpus=all --env="NVIDIA_DRIVER_CAPABILITIES=all" --net host --privileged -e DISPLAY=unix${DISPLAY} -e NVIDIA_VISIBLE_DEVICES=0 -v /tmp/.X11-unix:/tmp/.X11-unix -v $(pwd)/data/bags:/root/ros2_ws/bags -v $(pwd)/data/map:/root/ros2_ws/map -v $(pwd)/data/fig:/root/ros2_ws/fig --name test_maehara localizer_rl:latest
 ```
 
 ## Host側の.bashrc に以下を追記:
@@ -78,17 +79,15 @@ docker build -t localizer_rl:latest --build-arg REPO_OWNER=<GitHubユーザー�
 docker compose build --build-arg BRINGUP_BRANCH=humble && docker compose up -d
 ```
 
-## 地図・録画・図(コンテナを作り直す前に退避する)
+## 地図・録画・図(ホストの `data/`)
 地図は `/root/ros2_ws/map`、録画は `/root/ros2_ws/bags/gazebo`(Gazebo)・`/root/ros2_ws/bags/real`(実機)、図は `/root/ros2_ws/fig`
-(`localization_tools` の `eval/bag_paths.py`)。**コンテナの中なので、`docker compose up --build` などでコンテナを作り直すと消える**
-(`docker stop`・`start` では残る。地図はイメージに入っていない)。作り直す前にホストへ写し、作り直したら戻す。
-2026-10-14 にコンテナ名を `localizer_rl` から `test_maehara` に `docker rename` で変えたので、そのとき動いていたコンテナは
-次の `docker compose up -d` で作り直される(compose の設定と名前が違うため):
-```
-docker cp test_maehara:/root/ros2_ws/map <ホストの退避先>/
-docker cp test_maehara:/root/ros2_ws/bags <ホストの退避先>/
-docker cp test_maehara:/root/ros2_ws/fig <ホストの退避先>/
-```
+(`localization_tools` の `eval/bag_paths.py`)。`docker-compose.yml` がこのリポジトリの `data/{bags,map,fig}` を割り当てるので、
+**コンテナを作り直しても消えない**(2026-10-14 から。それまではコンテナの中にあり、作り直す前に `docker cp` で退避していた)。
+* `data/` は `.gitignore`・`.dockerignore` で git にもビルドの入力にも入れない(録画は数 GB になる)
+* コンテナの中で作ったファイル(録画・図)はホストでは root の持ち物になる。ホストで消すには `sudo` を使うか、コンテナの中で消す
+* 新しい PC では `data/` が無ければ Docker が空のディレクトリを作る(root の持ち物)。地図(`.pcd`)は `data/map/` に置く。
+  地図はイメージにも git にも入っていない
+* `/root/ros2_ws` の下なので、colcon が中を探さないよう各ディレクトリに `COLCON_IGNORE` を置く(録画は `run_test.sh` も置く)
 
 # 実行可能コマンド一覧
 |コマンド|実行内容|備考|

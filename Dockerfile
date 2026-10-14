@@ -118,7 +118,8 @@ RUN --mount=type=bind,from=repo_rev,target=/tmp/repo_rev \
     git -C /root/ros2_ws/localization_tools remote set-url --push origin git@github.com:${REPO_OWNER}/localization_tools.git
 
 # ---------- 地図・録画・図の置き場所（地図は savemap・localization、録画と図は localization_tools の eval/bag_paths.py） ----------
-# ros2_ws の下に置くので、colcon が中を探さないよう COLCON_IGNORE を置く。コンテナの中なので、作り直すと消える
+# ros2_ws の下に置くので、colcon が中を探さないよう COLCON_IGNORE を置く。docker-compose.yml ではホストの data/ を割り当てる
+# （作り直しても消えない。割り当てないとコンテナの中に置かれ、作り直すと消える）
 RUN mkdir -p /root/ros2_ws/map /root/ros2_ws/bags/gazebo/tune /root/ros2_ws/bags/real/tune /root/ros2_ws/fig && \
     touch /root/ros2_ws/map/COLCON_IGNORE /root/ros2_ws/bags/COLCON_IGNORE /root/ros2_ws/fig/COLCON_IGNORE
 

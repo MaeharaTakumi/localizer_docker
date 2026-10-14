@@ -1,5 +1,6 @@
 # docker run -itd --ipc=host --gpus=all --env="NVIDIA_DRIVER_CAPABILITIES=all" --net host --privileged \
 #   -e DISPLAY=unix${DISPLAY} -e NVIDIA_VISIBLE_DEVICES=0 -v /tmp/.X11-unix:/tmp/.X11-unix \
+#   -v $(pwd)/data/bags:/root/ros2_ws/bags -v $(pwd)/data/map:/root/ros2_ws/map -v $(pwd)/data/fig:/root/ros2_ws/fig \
 #   --name test_maehara localizer_rl:latest
 # と同じ設定
 name: localizer_rl
@@ -20,6 +21,11 @@ services:
       - NVIDIA_DRIVER_CAPABILITIES=all
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
+      # 録画・地図・図はホストの data/ に置く（コンテナを作り直しても消えない。git には入れない）。
+      # コンテナの中で作ったファイルは root の持ち物になる
+      - ./data/bags:/root/ros2_ws/bags
+      - ./data/map:/root/ros2_ws/map
+      - ./data/fig:/root/ros2_ws/fig
     deploy:
       resources:
         reservations:
