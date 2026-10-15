@@ -53,6 +53,20 @@ bags_list() {
   python3 ~/ros2_ws/localization_tools/eval/bag_info.py list ${1:+--source "$1"}
 }
 
+# パラメータ推定（観測ノイズ R・オドメトリの倍率・LiDAR の取付）：calib <gazebo|red|blue|white> [<bag 名>]
+# 推定用の動き（速さ・回数・秒数は calib_params）で走って録画し、続けて推定する。結果は ~/ros2_ws/fig/calib/<bag 名>/summary.yaml
+alias calib='~/ros2_ws/localization_tools/calib/run_calib.sh'
+alias calib_params='code ~/ros2_ws/localization_tools/param/calib.yaml'
+
+# 録画から推定だけ：calib_estimate <gazebo|red|blue|white> <bag 名かパス>（bag 名なら ~/ros2_ws/bags/<gazebo|real>/ の中）
+calib_estimate() {
+  if [ $# -lt 2 ]; then echo "Usage: calib_estimate <gazebo|red|blue|white> <bag>"; return 1; fi
+  local bag=$2 source=real
+  [ "$1" = gazebo ] && source=gazebo
+  case "$bag" in */*) ;; *) bag=/root/ros2_ws/bags/$source/$bag;; esac
+  python3 ~/ros2_ws/localization_tools/calib/estimate_all.py "$1" "$bag"
+}
+
 
 
 
