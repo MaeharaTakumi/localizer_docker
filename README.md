@@ -88,7 +88,7 @@ docker compose build --build-arg BRINGUP_BRANCH=<ブランチ> && docker compose
 * `/root/ros2_ws` の下なので、colcon が中を探さないよう各ディレクトリに `COLCON_IGNORE` を置く(録画は `run_test.sh` も置く)
 
 # 実行可能コマンド一覧
-この README はコンテナの中の `/root/README.md` にもある（イメージを作るときに写す）。
+この README はコンテナの中の `/root/ros2_ws/README.md` にもある（イメージを作るときに写す）。
 
 |コマンド|実行内容|備考|
 |:------|:-----|:---|

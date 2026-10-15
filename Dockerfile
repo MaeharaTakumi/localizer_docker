@@ -125,4 +125,4 @@ RUN mkdir -p /root/ros2_ws/map /root/ros2_ws/bags/gazebo/tune /root/ros2_ws/bags
 COPY src/aliases.txt /root/.bash_aliases
 COPY src/fastdds_localhost.xml /root/fastdds_localhost.xml
 # この README（コマンドの一覧など）をコンテナの中でも読めるようにする
-COPY README.md /root/README.md
+COPY README.md /root/ros2_ws/README.md
