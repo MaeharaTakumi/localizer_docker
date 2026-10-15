@@ -92,7 +92,7 @@ docker compose build --build-arg BRINGUP_BRANCH=<ブランチ> && docker compose
 |:------|:-----|:---|
 |`lidarslam`|NDT-SLAMを実行||
 |`savemap`|MAP(.pcd)を保存|`lidarslam`実行中に別terminalで実行する|
-|`localization`|MAPを選んで自己位置推定を実行|whill_odometry・NDT・EKF を起動する(実機用)。車椅子は `WHILL=white localization` のように色を付ける(既定は `red`。色と同じ名前の環境 `env:=<色>` で起動する)|
+|`localization`|MAPを選んで自己位置推定を実行|whill_odometry・NDT・EKF を起動する(実機用)。車椅子は `localization white` のように色を付ける(既定は `red`。色と同じ名前の環境 `env:=<色>` で起動する。`localization gazebo` も可)|
 |`odometry`|`whill_odometry` のみを起動||
 |`test_drive`|テスト走行と録画|`test_drive red spin5 <bag 名>`（`gazebo`・`red`・`blue`・`white`。localization_tools の `drive/run_test.sh`）|
 |`test_list`|テスト走行の動きの一覧|`test_list red spin5` なら走る前の計画（軌跡が範囲に収まるか）を表示|

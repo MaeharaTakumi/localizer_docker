@@ -15,7 +15,7 @@ alias slam_params='code ~/ros2_ws/src/lidarslam_ros2/lidarslam/param/lidarslam.y
 
 
 #========================Localization=========================
-# .pcdマップを用いてMatching実行（whill_odometry、NDT、EKF を起動）
+# .pcdマップを用いてMatching実行（whill_odometry、NDT、EKF を起動）。localization red（既定）・blue・white・gazebo
 alias localization='scanmatch'
 
 # params変更
@@ -148,20 +148,35 @@ save_map_gui() {
   fi
 }
 
+# 環境（localization_bringup の param/env/<名前>.yaml。red・blue・white（実機の車椅子）・gazebo）があるか確かめる
+localization_env_check() {
+  local env_dir
+  env_dir=$(ros2 pkg prefix localization_bringup 2>/dev/null)/share/localization_bringup/param/env
+  if [ ! -f "${env_dir}/$1.yaml" ]; then
+    echo "Error: no environment \"$1\". Available: $(ls "${env_dir}" 2>/dev/null | sed 's/\.yaml$//' | tr '\n' ' ')"
+    return 1
+  fi
+}
+
 scanmatch_cli() {
   # Check if a file path argument was provided.
   if [ -z "$1" ]; then
     echo "Error: Please specify the path to the PCD file."
-    echo "Usage: scanmatch_cli /path/to/your/map.pcd"
+    echo "Usage: scanmatch_cli /path/to/your/map.pcd [red|blue|white|gazebo]"
     return 1
   fi
+  local env=${2:-red}
+  localization_env_check "$env" || return 1
 
   # Launch whill_odometry, NDT and EKF (localization_bringup, env:=<wheelchair color>) with the given map.
-  # Wheelchair color: WHILL=red|blue|white (default: red). The env (param/env/<color>.yaml) has the same name
-  ros2 launch localization_bringup localization.launch.py env:="${WHILL:-red}" map_path:="$1"
+  ros2 launch localization_bringup localization.launch.py env:="$env" map_path:="$1"
 }
 
+# localization [red|blue|white|gazebo]：地図を選んで自己位置推定を起動する（既定 red）
 scanmatch(){
+  local env=${1:-red}
+  localization_env_check "$env" || return 1
+
   # Use Zenity to display a file selection dialog for PCD files
   # --filename sets the default directory
   PCD_FILE=$(zenity --file-selection \
@@ -177,10 +192,8 @@ scanmatch(){
   fi
 
   # If a file was selected, show a confirmation message
-  zenity --info --text="Starting localization with the following map:\n\n${PCD_FILE}\n\nWheelchair: ${WHILL:-red}"
+  zenity --info --text="Starting localization with the following map:\n\n${PCD_FILE}\n\nEnvironment: ${env}"
 
   # Launch whill_odometry, NDT and EKF (localization_bringup, env:=<wheelchair color>) with the selected map.
-  # Wheelchair color: WHILL=red|blue|white (default: red). The env (param/env/<color>.yaml) has the same name
-  ros2 launch localization_bringup localization.launch.py env:="${WHILL:-red}" map_path:="${PCD_FILE}"
+  ros2 launch localization_bringup localization.launch.py env:="$env" map_path:="${PCD_FILE}"
 }
-
