@@ -29,7 +29,7 @@ alias ekf_params='code ~/ros2_ws/src/ekf_localizer/param/ekf.yaml'
 alias odometry='ros2 launch whill_odometry odometry.launch.py'
 
 # params変更
-alias odom_params='code ~/ros2_ws/src/whill_odometry/config/odometry.yaml'
+alias odom_params='code ~/ros2_ws/src/whill_odometry/param/odometry.yaml'
 
 
 
