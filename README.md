@@ -1,8 +1,8 @@
-# localizer_rl_docker
-NDT + EKF（ekf_localizer / robot_localization）Localizer using Velodyne VLP-16 + WHILL odometry for wheelchair group
+# localizer_docker
+NDT + EKF（ekf_localizer）Localizer using Velodyne VLP-16 + WHILL odometry for wheelchair group
 
-[localizer_ekf_docker](https://github.com/MaeharaTakumi/localizer_ekf_docker) をベースに、EKF を
-[robot_localization](https://github.com/cra-ros-pkg/robot_localization) に切り替えて試せるようにしたもの
+[localizer_ekf_docker](https://github.com/MaeharaTakumi/localizer_ekf_docker) をベースにした開発用の環境
+（2026-10-15 に `localizer_rl_docker` から名前を変えた。robot_localization に切り替えて試す機能は廃止した）
 
 |リポジトリ|ブランチ|パッケージ|
 |:--|:--|:--|
@@ -10,19 +10,17 @@ NDT + EKF（ekf_localizer / robot_localization）Localizer using Velodyne VLP-16
 |[MaeharaTakumi/lidar_localization](https://github.com/MaeharaTakumi/lidar_localization)|humble|`pcl_localization_ros2`(NDT)|
 |[MaeharaTakumi/whill_odometry](https://github.com/MaeharaTakumi/whill_odometry)|humble|`whill_odometry`|
 |[MaeharaTakumi/ekf_localizer](https://github.com/MaeharaTakumi/ekf_localizer)|humble|`ekf_localizer`(EKF)|
-|[MaeharaTakumi/localization_bringup](https://github.com/MaeharaTakumi/localization_bringup)|robot_localization|`localization_bringup`(NDT・EKF・whill_odometry を環境ごとの設定で起動)|
+|[MaeharaTakumi/localization_bringup](https://github.com/MaeharaTakumi/localization_bringup)|humble|`localization_bringup`(NDT・EKF・whill_odometry を環境ごとの設定で起動)|
 |[MaeharaTakumi/localization_tools](https://github.com/MaeharaTakumi/localization_tools)|main|ROS のパッケージではない。`/root/ros2_ws/localization_tools`(検証・調整・描画・Gazebo と実機のテスト走行と録画)|
 
 ### ベース(localizer_ekf_docker)からの主な変更点
-* `ros-humble-robot-localization` を入れた。`localization_bringup` の `robot_localization` ブランチで
-  `estimator:=robot_localization` を付けると、`ekf_localizer` の代わりに robot_localization(2 段 EKF)で推定する
-* `localization_bringup` だけ別のブランチを取得できる build-arg `BRINGUP_BRANCH` を追加(既定は開発中の `robot_localization`)
+* `localization_bringup` だけ別のブランチを取得できる build-arg `BRINGUP_BRANCH` を追加(既定は `humble`)
 * [localization_tools](https://github.com/MaeharaTakumi/localization_tools) を `/root/ros2_ws/localization_tools` に入れた(build-arg `TOOLS_BRANCH`、既定 `main`)
 * 地図・録画・図の置き場所 `/root/ros2_ws/map`・`/root/ros2_ws/bags/{gazebo,real}`・`/root/ros2_ws/fig` を作る(`COLCON_IGNORE` 入り)。
   `docker-compose.yml` ではホストの `data/` を割り当てるので、コンテナを作り直しても消えない(下記)。
   `savemap` の保存先と `localization` の地図選択の初期フォルダも `/root/ros2_ws/map`
 * `.bashrc` の通信設定の既定を Gazebo 用にした
-* イメージ名 `localizer_rl:latest` / コンテナ名 `test_maehara`(localizer_ekf・whill_localizer と並べて使える。
+* イメージ名 `localizer_maehara:latest` / コンテナ名 `test`(localizer_ekf・whill_localizer と並べて使える。
   同時に自己位置推定を動かすと同じ ROS_DOMAIN_ID でぶつかるので、動かすのは 1 つだけにする)
 
 ## 2026/02/20現在で確認している不具合
@@ -47,15 +45,15 @@ docker compose up -d --build
 ```
 コンテナに入る:
 ```
-docker exec -it test_maehara bash
+docker exec -it test bash
 ```
 
 ### (docker compose を使わない場合)
 ```
-docker build -t localizer_rl:latest .
+docker build -t localizer_maehara:latest .
 ```
 ```
-docker run -itd --ipc=host --gpus=all --env="NVIDIA_DRIVER_CAPABILITIES=all" --net host --privileged -e DISPLAY=unix${DISPLAY} -e NVIDIA_VISIBLE_DEVICES=0 -v /tmp/.X11-unix:/tmp/.X11-unix -v $(pwd)/data/bags:/root/ros2_ws/bags -v $(pwd)/data/map:/root/ros2_ws/map -v $(pwd)/data/fig:/root/ros2_ws/fig --name test_maehara localizer_rl:latest
+docker run -itd --ipc=host --gpus=all --env="NVIDIA_DRIVER_CAPABILITIES=all" --net host --privileged -e DISPLAY=unix${DISPLAY} -e NVIDIA_VISIBLE_DEVICES=0 -v /tmp/.X11-unix:/tmp/.X11-unix -v $(pwd)/data/bags:/root/ros2_ws/bags -v $(pwd)/data/map:/root/ros2_ws/map -v $(pwd)/data/fig:/root/ros2_ws/fig --name test localizer_maehara:latest
 ```
 
 ## Host側の.bashrc に以下を追記:
@@ -64,7 +62,7 @@ xhost +local:
 ```
 
 ## リポジトリを更新したとき
-もう一度ビルドすると、各リポジトリのブランチ(`humble`、`localization_bringup` は `robot_localization`、`localization_tools` は `main`)の最新コミットが取り込まれる
+もう一度ビルドすると、各リポジトリのブランチ(`humble`、`localization_tools` は `main`)の最新コミットが取り込まれる
 (コミットが変わっていなければキャッシュが使われ、すぐ終わる)
 ```
 docker compose up -d --build
@@ -72,11 +70,11 @@ docker compose up -d --build
 
 別のユーザー・ブランチから取得したい場合:
 ```
-docker build -t localizer_rl:latest --build-arg REPO_OWNER=<GitHubユーザー名> --build-arg REPO_BRANCH=<ブランチ名> .
+docker build -t localizer_maehara:latest --build-arg REPO_OWNER=<GitHubユーザー名> --build-arg REPO_BRANCH=<ブランチ名> .
 ```
-`localization_bringup` だけ別のブランチにする場合(例: `humble` に戻す):
+`localization_bringup` だけ別のブランチにする場合(例: 開発中のブランチ `<ブランチ>` を試す):
 ```
-docker compose build --build-arg BRINGUP_BRANCH=humble && docker compose up -d
+docker compose build --build-arg BRINGUP_BRANCH=<ブランチ> && docker compose up -d
 ```
 
 ## 地図・録画・図(ホストの `data/`)
@@ -118,10 +116,6 @@ VLP-16 ── /velodyne_points ──▶ cloud_stamp_corrector ── /localizat
 ```
 ros2 launch localization_bringup localization.launch.py env:=gazebo map_path:=<PCDファイルのパス>
 ```
-robot_localization で推定する場合(`localization_bringup` の `robot_localization` ブランチが必要):
-```
-ros2 launch localization_bringup localization.launch.py env:=gazebo estimator:=robot_localization map_path:=<PCDファイルのパス>
-```
 
 ## 実機で使う場合
 コンテナ内の `~/.bashrc` の通信設定を切り替える(Gazebo 用の行をコメントアウトし、実機用の行のコメントを外す)。
@@ -152,10 +146,10 @@ https://github.com/MaeharaTakumi/lidar_localization#params
 `~/ros2_ws/src` の各リポジトリは、pull は HTTPS(鍵不要)、push は SSH(`git@github.com:MaeharaTakumi/...`)に設定してある。
 push するにはコンテナ内に GitHub 用の SSH 鍵が必要(例: ホストの鍵をコピー)
 ```
-docker exec test_maehara mkdir -p /root/.ssh
+docker exec test mkdir -p /root/.ssh
 ```
 ```
-docker cp ~/.ssh/id_ed25519 test_maehara:/root/.ssh/id_ed25519
+docker cp ~/.ssh/id_ed25519 test:/root/.ssh/id_ed25519
 ```
 
 

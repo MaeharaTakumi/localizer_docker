@@ -3,8 +3,8 @@
 # ros2_ws/src に取得するリポジトリ（https://github.com/<REPO_OWNER>/<repo> の <REPO_BRANCH>）
 ARG REPO_OWNER=MaeharaTakumi
 ARG REPO_BRANCH=humble
-# localization_bringup だけ別のブランチにする（開発中の robot_localization ブランチ。humble は --build-arg BRINGUP_BRANCH=humble）
-ARG BRINGUP_BRANCH=robot_localization
+# localization_bringup だけ別のブランチにするとき（開発中のブランチを試すなど）に --build-arg BRINGUP_BRANCH=<ブランチ> で変える
+ARG BRINGUP_BRANCH=humble
 # 検証・調整・描画・テスト走行のツール（ROS のパッケージではないので src の外の /root/ros2_ws/localization_tools に置く。
 # リポジトリに COLCON_IGNORE があるので colcon は中を探さない）
 ARG TOOLS_BRANCH=main
@@ -62,10 +62,9 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# ---------- robot_localization（推定器の切り替え先） ----------
+# ---------- localization_bringup の Python のノード・localization_tools が使う ----------
 RUN apt-get update && \
     apt-get install -y \
-    ros-humble-robot-localization \
     python3-numpy && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
