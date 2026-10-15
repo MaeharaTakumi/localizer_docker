@@ -96,8 +96,8 @@ docker compose build --build-arg BRINGUP_BRANCH=<ブランチ> && docker compose
 |`savemap`|MAP(.pcd)を保存|`lidarslam`実行中に別terminalで実行する|
 |`localization`|MAPを選んで自己位置推定を実行|whill_odometry・NDT・EKF を起動する(実機用)。車椅子は `localization white` のように色を付ける(既定は `red`。色と同じ名前の環境 `env:=<色>` で起動する。`localization gazebo` も可)。`localization white SC10_4_0.05` のように地図も付けると、選ぶ画面を出さずに起動する(名前なら `/root/ros2_ws/map/` の中、パスでもよい)|
 |`odometry`|`whill_odometry` のみを起動||
-|`test_drive`|テスト走行と録画|`test_drive red spin5 <bag 名>`（`gazebo`・`red`・`blue`・`white`。localization_tools の `drive/run_test.sh`）|
-|`test_list`|テスト走行の動きの一覧|`test_list red spin5` なら走る前の計画（軌跡が範囲に収まるか）を表示|
+|`drive`|テスト走行と録画|`drive red spin5`（`gazebo`・`red`・`blue`・`white`。bag 名を省くと `red_spin5_<年月日_時分秒>`。`drive red spin5 <bag 名>` で名前を付ける。localization_tools の `drive/run_test.sh`）|
+|`drive_list`|テスト走行の動きの一覧|`drive_list red spin5` なら走る前の計画（軌跡が範囲に収まるか）を表示|
 |`bags_list`|録画の一覧|`bags_list real` で実機だけ、`bags_list gazebo` で Gazebo だけ|
 |`slam_params`|SLAM parameterを確認/編集*|保存後の次回起動時に反映される|
 |`lclz_params`|Matching(NDT) parameterを確認/編集*|保存後の次回起動時に反映される|

@@ -35,11 +35,12 @@ alias odom_params='code ~/ros2_ws/src/whill_odometry/param/odometry.yaml'
 
 
 #======================Test drive (localization_tools)========
-# テスト走行と録画：test_drive <gazebo|red|blue|white> <動き> <bag 名>（実機は自己位置推定の env:=<色> と同じ色）
-alias test_drive='~/ros2_ws/localization_tools/drive/run_test.sh'
+# テスト走行と録画：drive <gazebo|red|blue|white> <動き> [<bag 名>]（実機は自己位置推定の env:=<色> と同じ色）。
+# bag 名を省くと <target>_<動き>_<年月日_時分秒>
+alias drive='~/ros2_ws/localization_tools/drive/run_test.sh'
 
-# 動きの一覧。test_list <gazebo|red|blue|white> <動き> なら、走る前の計画（計算した軌跡が範囲に収まるか）を表示する
-test_list() {
+# 動きの一覧。drive_list <gazebo|red|blue|white> <動き> なら、走る前の計画（計算した軌跡が範囲に収まるか）を表示する
+drive_list() {
   if [ $# -ge 2 ]; then
     python3 ~/ros2_ws/localization_tools/drive/drive_test.py "$1" "$2" --simulate
   else
