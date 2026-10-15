@@ -15,7 +15,7 @@ alias slam_params='code ~/ros2_ws/src/lidarslam_ros2/lidarslam/param/lidarslam.y
 
 
 #========================Localization=========================
-# .pcdマップを用いてMatching実行（whill_odometry、NDT、EKF を起動）。localization red（既定）・blue・white・gazebo
+# .pcdマップを用いてMatching実行（whill_odometry、NDT、EKF を起動）。localization [red（既定）|blue|white|gazebo] [地図]
 alias localization='scanmatch'
 
 # params変更
@@ -165,17 +165,37 @@ scanmatch_cli() {
     echo "Usage: scanmatch_cli /path/to/your/map.pcd [red|blue|white|gazebo]"
     return 1
   fi
-  local env=${2:-red}
+  local env=${2:-red} map
   localization_env_check "$env" || return 1
+  map=$(localization_map_path "$1") || return 1
 
   # Launch whill_odometry, NDT and EKF (localization_bringup, env:=<wheelchair color>) with the given map.
-  ros2 launch localization_bringup localization.launch.py env:="$env" map_path:="$1"
+  ros2 launch localization_bringup localization.launch.py env:="$env" map_path:="$map"
 }
 
-# localization [red|blue|white|gazebo]：地図を選んで自己位置推定を起動する（既定 red）
+# 地図の名前（SC10_4_0.05・SC10_4_0.05.pcd）かパスから、地図のファイルのパスを返す（名前なら /root/ros2_ws/map/ の中）
+localization_map_path() {
+  local map=$1
+  case "$map" in */*) ;; *) map=/root/ros2_ws/map/$map;; esac
+  case "$map" in *.pcd) ;; *) map=$map.pcd;; esac
+  if [ ! -f "$map" ]; then
+    echo "Error: no map \"$map\". Maps in /root/ros2_ws/map: $(cd /root/ros2_ws/map 2>/dev/null && ls *.pcd 2>/dev/null | tr '\n' ' ')" >&2
+    return 1
+  fi
+  echo "$map"
+}
+
+# localization [red|blue|white|gazebo] [地図]：自己位置推定を起動する（既定 red）。
+# 地図を省くと選ぶ画面を出す。地図は名前（SC10_4_0.05）でもパスでもよい
 scanmatch(){
   local env=${1:-red}
   localization_env_check "$env" || return 1
+  if [ -n "$2" ]; then
+    PCD_FILE=$(localization_map_path "$2") || return 1
+    echo "Starting localization: env ${env}, map ${PCD_FILE}"
+    ros2 launch localization_bringup localization.launch.py env:="$env" map_path:="${PCD_FILE}"
+    return
+  fi
 
   # Use Zenity to display a file selection dialog for PCD files
   # --filename sets the default directory
