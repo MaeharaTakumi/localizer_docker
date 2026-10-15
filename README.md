@@ -92,7 +92,7 @@ docker compose build --build-arg BRINGUP_BRANCH=<ブランチ> && docker compose
 |:------|:-----|:---|
 |`lidarslam`|NDT-SLAMを実行||
 |`savemap`|MAP(.pcd)を保存|`lidarslam`実行中に別terminalで実行する|
-|`localization`|MAPを選んで自己位置推定を実行|whill_odometry・NDT・EKF を起動する(実機用)。車椅子は `WHILL=red localization` のように色を付ける(既定は `real.yaml` の `blue`)|
+|`localization`|MAPを選んで自己位置推定を実行|whill_odometry・NDT・EKF を起動する(実機用)。車椅子は `WHILL=white localization` のように色を付ける(既定は `red`。色と同じ名前の環境 `env:=<色>` で起動する)|
 |`odometry`|`whill_odometry` のみを起動||
 |`slam_params`|SLAM parameterを確認/編集*|保存後の次回起動時に反映される|
 |`lclz_params`|Matching(NDT) parameterを確認/編集*|保存後の次回起動時に反映される|
@@ -107,8 +107,8 @@ docker compose build --build-arg BRINGUP_BRANCH=<ブランチ> && docker compose
 whill_node (WHILL側) ── /Drp5_whill_<色>/whill_node/motor_speed_ts ──▶ whill_odometry ── /wheelchair/odom ──▶ ekf_localizer ──▶ /ekf_pose, TF(map→base_link)
 VLP-16 ── /velodyne_points ──▶ cloud_stamp_corrector ── /localization/points ──▶ pcl_localization ── /ndt_pose ──▶ ekf_localizer
 ```
-車椅子の色(`blue`・`red`・`white`)は launch の `whill:=<色>`(既定は `real.yaml` の `blue`)。
-トピック名・フレーム名などの環境ごとの設定は `localization_bringup` の `param/env/real.yaml` で変更する
+車椅子の色(`red`・`blue`・`white`)は launch の環境 `env:=<色>`(既定は `red`)で選ぶ。
+トピック名・フレーム名などの環境ごとの設定は `localization_bringup` の `param/env/<色>.yaml` で変更する(3 つは色だけが違う)
 (詳細は [localization_bringup](https://github.com/MaeharaTakumi/localization_bringup))
 
 ## Gazebo で使う場合
@@ -140,7 +140,7 @@ https://github.com/MaeharaTakumi/lidar_localization#params
 `~/ros2_ws/src/whill_odometry/config/odometry.yaml`
 
 ### 環境ごとの設定(トピック名・取付位置・パラメータの上書き)
-`~/ros2_ws/src/localization_bringup/param/env/real.yaml`
+`~/ros2_ws/src/localization_bringup/param/env/red.yaml`(`blue.yaml`・`white.yaml` も同じ内容で色だけが違う)
 
 # コンテナ内から git push する場合
 `~/ros2_ws/src` の各リポジトリは、pull は HTTPS(鍵不要)、push は SSH(`git@github.com:MaeharaTakumi/...`)に設定してある。

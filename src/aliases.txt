@@ -135,9 +135,9 @@ scanmatch_cli() {
     return 1
   fi
 
-  # Launch whill_odometry, NDT and EKF (localization_bringup, env:=real) with the given map.
-  # Wheelchair color: WHILL=blue|red|white (default: whill in real.yaml)
-  ros2 launch localization_bringup localization.launch.py env:=real map_path:="$1" ${WHILL:+whill:=$WHILL}
+  # Launch whill_odometry, NDT and EKF (localization_bringup, env:=<wheelchair color>) with the given map.
+  # Wheelchair color: WHILL=red|blue|white (default: red). The env (param/env/<color>.yaml) has the same name
+  ros2 launch localization_bringup localization.launch.py env:="${WHILL:-red}" map_path:="$1"
 }
 
 scanmatch(){
@@ -156,10 +156,10 @@ scanmatch(){
   fi
 
   # If a file was selected, show a confirmation message
-  zenity --info --text="Starting localization with the following map:\n\n${PCD_FILE}\n\nWheelchair: ${WHILL:-(real.yaml)}"
+  zenity --info --text="Starting localization with the following map:\n\n${PCD_FILE}\n\nWheelchair: ${WHILL:-red}"
 
-  # Launch whill_odometry, NDT and EKF (localization_bringup, env:=real) with the selected map.
-  # Wheelchair color: WHILL=blue|red|white (default: whill in real.yaml)
-  ros2 launch localization_bringup localization.launch.py env:=real map_path:="${PCD_FILE}" ${WHILL:+whill:=$WHILL}
+  # Launch whill_odometry, NDT and EKF (localization_bringup, env:=<wheelchair color>) with the selected map.
+  # Wheelchair color: WHILL=red|blue|white (default: red). The env (param/env/<color>.yaml) has the same name
+  ros2 launch localization_bringup localization.launch.py env:="${WHILL:-red}" map_path:="${PCD_FILE}"
 }
 
