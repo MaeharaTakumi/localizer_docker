@@ -94,6 +94,9 @@ docker compose build --build-arg BRINGUP_BRANCH=<ブランチ> && docker compose
 |`savemap`|MAP(.pcd)を保存|`lidarslam`実行中に別terminalで実行する|
 |`localization`|MAPを選んで自己位置推定を実行|whill_odometry・NDT・EKF を起動する(実機用)。車椅子は `WHILL=white localization` のように色を付ける(既定は `red`。色と同じ名前の環境 `env:=<色>` で起動する)|
 |`odometry`|`whill_odometry` のみを起動||
+|`test_drive`|テスト走行と録画|`test_drive red spin5 <bag 名>`（`gazebo`・`red`・`blue`・`white`。localization_tools の `drive/run_test.sh`）|
+|`test_list`|テスト走行の動きの一覧|`test_list red spin5` なら走る前の計画（軌跡が範囲に収まるか）を表示|
+|`bags`|録画の一覧|`bags --source real` で実機だけ|
 |`slam_params`|SLAM parameterを確認/編集*|保存後の次回起動時に反映される|
 |`lclz_params`|Matching(NDT) parameterを確認/編集*|保存後の次回起動時に反映される|
 |`ekf_params`|EKF parameterを確認/編集*|保存後の次回起動時に反映される|

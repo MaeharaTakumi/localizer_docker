@@ -34,6 +34,25 @@ alias odom_params='code ~/ros2_ws/src/whill_odometry/param/odometry.yaml'
 
 
 
+#======================Test drive (localization_tools)========
+# テスト走行と録画：test_drive <gazebo|red|blue|white> <動き> <bag 名>（実機は自己位置推定の env:=<色> と同じ色）
+alias test_drive='~/ros2_ws/localization_tools/drive/run_test.sh'
+
+# 動きの一覧。test_list <gazebo|red|blue|white> <動き> なら、走る前の計画（計算した軌跡が範囲に収まるか）を表示する
+test_list() {
+  if [ $# -ge 2 ]; then
+    python3 ~/ros2_ws/localization_tools/drive/drive_test.py "$1" "$2" --simulate
+  else
+    python3 ~/ros2_ws/localization_tools/drive/drive_test.py red --list
+  fi
+}
+
+# 録画の一覧（Gazebo・実機。bags --source real で実機だけ）
+alias bags='python3 ~/ros2_ws/localization_tools/eval/bag_info.py list'
+
+
+
+
 # ======================FUNCTION==============================
 # Saves the map and pose_graph from ROS2 to /root/ros2_ws/map/ with a user-specified name (CLI version).
 # Default filename is the current timestamp.
