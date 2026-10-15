@@ -47,8 +47,10 @@ test_list() {
   fi
 }
 
-# 録画の一覧（Gazebo・実機。bags --source real で実機だけ）
-alias bags='python3 ~/ros2_ws/localization_tools/eval/bag_info.py list'
+# 録画の一覧：bags_list（Gazebo・実機の全部）、bags_list gazebo、bags_list real
+bags_list() {
+  python3 ~/ros2_ws/localization_tools/eval/bag_info.py list ${1:+--source "$1"}
+}
 
 
 
