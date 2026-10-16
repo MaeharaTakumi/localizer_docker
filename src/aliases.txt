@@ -53,18 +53,22 @@ bags_list() {
   python3 ~/ros2_ws/localization_tools/eval/bag_info.py list ${1:+--source "$1"}
 }
 
-# パラメータ推定（観測ノイズ R・オドメトリの倍率・LiDAR の取付）：calib <gazebo|red|blue|white> [<bag 名>]
-# 推定用の動き（速さ・回数・秒数は calib_params）で走って録画し、続けて推定する。結果は ~/ros2_ws/fig/calib/<bag 名>/summary.yaml
-alias calib='~/ros2_ws/localization_tools/calib/run_calib.sh'
-alias calib_params='code ~/ros2_ws/localization_tools/param/calib.yaml'
+# パラメータ推定（観測ノイズ R・オドメトリの倍率・LiDAR の取付）：calibration <gazebo|red|blue|white> [<bag 名>]
+# 推定用の動き（calibration_params の motion.yaml）で走って録画し、続けて推定する（設定は calibrate.yaml）。
+# 結果は ~/ros2_ws/fig/calibration/<bag 名>/summary.yaml
+alias calibration='~/ros2_ws/localization_tools/calibration/run_calibration.sh'
+# 推定用の動きと推定の設定を開く
+alias calibration_params='code ~/ros2_ws/localization_tools/calibration/param/motion.yaml ~/ros2_ws/localization_tools/calibration/param/calibrate.yaml'
+# 推定用の動きの計画（走る前に、軌跡が範囲に収まるか）：calibration_plan <gazebo|red|blue|white>
+alias calibration_plan='python3 ~/ros2_ws/localization_tools/calibration/motion.py'
 
-# 録画から推定だけ：calib_estimate <gazebo|red|blue|white> <bag 名かパス>（bag 名なら ~/ros2_ws/bags/<gazebo|real>/ の中）
-calib_estimate() {
-  if [ $# -lt 2 ]; then echo "Usage: calib_estimate <gazebo|red|blue|white> <bag>"; return 1; fi
+# 録画から推定だけ：calibrate <gazebo|red|blue|white> <bag 名かパス>（bag 名なら ~/ros2_ws/bags/<gazebo|real>/ の中）
+calibrate() {
+  if [ $# -lt 2 ]; then echo "Usage: calibrate <gazebo|red|blue|white> <bag>"; return 1; fi
   local bag=$2 source=real
   [ "$1" = gazebo ] && source=gazebo
   case "$bag" in */*) ;; *) bag=/root/ros2_ws/bags/$source/$bag;; esac
-  python3 ~/ros2_ws/localization_tools/calib/estimate_all.py "$1" "$bag"
+  python3 ~/ros2_ws/localization_tools/calibration/calibrate.py "$1" "$bag"
 }
 
 
