@@ -39,7 +39,7 @@ alias odom_params='code ~/ros2_ws/src/whill_odometry/param/odometry.yaml'
 # bag 名を省くと <target>_<動き>_<年月日_時分秒>
 alias drive='~/ros2_ws/localization_tools/drive/run_test.sh'
 
-# 動きの一覧。drive_list <gazebo|red|blue|white> <動き> なら、走る前の計画（計算した軌跡が範囲に収まるか）を表示する
+# 動きの一覧。drive_list <gazebo|red|blue|white> <動き> なら、走る前の計画（計算した軌跡）を表示する
 drive_list() {
   if [ $# -ge 2 ]; then
     python3 ~/ros2_ws/localization_tools/drive/drive_test.py "$1" "$2" --simulate
@@ -59,7 +59,7 @@ bags_list() {
 alias calibration='~/ros2_ws/localization_tools/calibration/run_calibration.sh'
 # 推定用の動きと推定の設定を開く
 alias calibration_params='code ~/ros2_ws/localization_tools/calibration/param/motion.yaml ~/ros2_ws/localization_tools/calibration/param/calibrate.yaml'
-# 推定用の動きの計画（走る前に、軌跡が範囲に収まるか）：calibration_plan <gazebo|red|blue|white>
+# 推定用の動きの計画（走る前に計算した軌跡）：calibration_plan <gazebo|red|blue|white>
 alias calibration_plan='python3 ~/ros2_ws/localization_tools/calibration/motion.py'
 
 # 録画から推定だけ：calibrate <gazebo|red|blue|white> <bag 名かパス>（bag 名なら ~/ros2_ws/bags/<gazebo|real>/ の中）

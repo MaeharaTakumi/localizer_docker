@@ -97,11 +97,11 @@ docker compose build --build-arg BRINGUP_BRANCH=<ブランチ> && docker compose
 |`localization`|MAPを選んで自己位置推定を実行|whill_odometry・NDT・EKF を起動する(実機用)。車椅子は `localization white` のように色を付ける(既定は `red`。色と同じ名前の環境 `env:=<色>` で起動する。`localization gazebo` も可)。`localization white SC10_4_0.05` のように地図も付けると、選ぶ画面を出さずに起動する(名前なら `/root/ros2_ws/map/` の中、パスでもよい)|
 |`odometry`|`whill_odometry` のみを起動||
 |`drive`|テスト走行と録画|`drive red spin5`（`gazebo`・`red`・`blue`・`white`。bag 名を省くと `red_spin5_<年月日_時分秒>`。`drive red spin5 <bag 名>` で名前を付ける。localization_tools の `drive/run_test.sh`）|
-|`drive_list`|テスト走行の動きの一覧|`drive_list red spin5` なら走る前の計画（軌跡が範囲に収まるか）を表示|
+|`drive_list`|テスト走行の動きの一覧|`drive_list red spin5` なら走る前の計画（計算した軌跡）を表示|
 |`bags_list`|録画の一覧|`bags_list real` で実機だけ、`bags_list gazebo` で Gazebo だけ|
 |`calibration`|パラメータ推定（観測ノイズ R・オドメトリの倍率・LiDAR の取付）|`calibration red`：推定用の動き（その場で左に 4 周 → 止まる → 片道の直進）で走って録画し、続けて推定する。結果は `~/ros2_ws/fig/calibration/<bag 名>/summary.yaml`（env には書き込まない）。bag 名を省くと `red_calibration_<年月日_時分秒>`|
 |`calibration_params`|推定の設定を開く|localization_tools の `calibration/param/motion.yaml`（動き：止まる時間・角速度・周回数・直進の速度と時間。Gazebo・実機で共通）と `calibrate.yaml`（推定：区間の取り方・窓・直進の安定の判定など）|
-|`calibration_plan`|推定用の動きの計画|`calibration_plan red`（走る前に、軌跡が範囲に収まるか）|
+|`calibration_plan`|推定用の動きの計画|`calibration_plan red`（走る前に計算した軌跡を表示）|
 |`calibrate`|録画から推定だけ|`calibrate red red_calibration_20261015_153012`（bag 名かパス）|
 |`slam_params`|SLAM parameterを確認/編集*|保存後の次回起動時に反映される|
 |`lclz_params`|Matching(NDT) parameterを確認/編集*|保存後の次回起動時に反映される|
