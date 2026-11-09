@@ -146,7 +146,7 @@ https://github.com/MaeharaTakumi/lidar_localization#params
 `~/ros2_ws/src/ekf_localizer/param/ekf.yaml`
 
 ### Odometry
-`~/ros2_ws/src/whill_odometry/param/odometry.yaml`(オドメトリの倍率・観測ノイズ R は環境ファイルの `parameters.odom_covariance`)
+`~/ros2_ws/src/whill_odometry/param/odometry.yaml`(オドメトリの倍率は環境ファイルの `parameters.odom_covariance`、観測ノイズ R は `ekf_localizer` の `param/ekf.yaml`)
 
 ### 環境ごとの設定(トピック名・取付位置・パラメータの上書き)
 `~/ros2_ws/src/localization_bringup/param/env/red.yaml`(`blue.yaml`・`white.yaml` も同じ内容で色だけが違う)
