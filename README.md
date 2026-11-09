@@ -114,7 +114,7 @@ docker compose build --build-arg BRINGUP_BRANCH=<ブランチ> && docker compose
 ## トピックの流れ(localization 実行時)
 ```
 whill_node (WHILL側) ── /Drp5_whill_<色>/whill_node/motor_speed_ts ──▶ whill_odometry ── /wheelchair/odom ──▶ ekf_localizer ──▶ /ekf_pose, TF(map→base_link)
-VLP-16 ── /velodyne_points ──▶ cloud_stamp_corrector ── /localization/points ──▶ pcl_localization ── /ndt_pose ──▶ ekf_localizer
+VLP-16 ── /velodyne_points ──▶ pcl_localization ── /ndt_pose ──▶ ekf_localizer
 ```
 車椅子の色(`red`・`blue`・`white`)は launch の環境 `env:=<色>`(既定は `red`)で選ぶ。
 トピック名・フレーム名などの環境ごとの設定は `localization_bringup` の `param/env/<色>.yaml` で変更する(3 つは色だけが違う)
