@@ -2,15 +2,21 @@
 alias reload='exec $SHELL -l'
 
 #=========================SLAM===============================
-# SLAM実行
-alias lidarslam='ros2 launch lidarslam lidarslam.launch.py'
+# SLAM実行（lidarslam の scan_matcher・graph_based_slam と EKF。localization_bringup の lidarslam.launch.py）。lidarslam [red（既定）|blue|white|gazebo]
+# 環境（param/<色>/）は localization と同じで、SLAM のパラメータは param/<色>/lidarslam.yaml。地図は savemap で保存する（同じディレクトリで実行）
+# （lidarslam パッケージ単体の launch は ros2 launch lidarslam lidarslam.launch.py。パラメータは lidarslam/param/lidarslam.yaml）
+lidarslam() {
+  local env=${1:-red}
+  localization_env_check "$env" || return 1
+  ros2 launch localization_bringup lidarslam.launch.py env:="$env"
+}
 
 # .pcdマップの保存（lidarslamを実行中に使う）デフォルト名は年月日時刻
 alias savemap='save_map_gui'
 # alias savemap_cli='save_map'
 
-# params変更
-alias slam_params='code ~/ros2_ws/src/lidarslam_ros2/lidarslam/param/lidarslam.yaml'
+# params変更：環境（localization_bringup の param/<色>/）の lidarslam.yaml を開く。slam_params [red|blue|white|gazebo]（既定 red）
+slam_params() { localization_params_open lidarslam "$@"; }
 
 
 

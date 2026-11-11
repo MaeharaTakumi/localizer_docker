@@ -92,8 +92,8 @@ docker compose build --build-arg BRINGUP_BRANCH=<ブランチ> && docker compose
 
 |コマンド|実行内容|備考|
 |:------|:-----|:---|
-|`lidarslam`|NDT-SLAMを実行||
-|`savemap`|MAP(.pcd)を保存|`lidarslam`実行中に別terminalで実行する|
+|`lidarslam`|NDT-SLAMを実行|lidarslam(scan_matcher・graph_based_slam)と EKF を起動する。`lidarslam blue` のように環境を付ける(既定は `red`。`localization` と同じ `param/<色>/` を使い、SLAM のパラメータは `param/<色>/lidarslam.yaml`)。`localization_bringup` の `lidarslam.launch.py`。lidarslam パッケージ単体は `ros2 launch lidarslam lidarslam.launch.py`|
+|`savemap`|MAP(.pcd)を保存|`lidarslam`実行中に、`lidarslam` を実行したのと同じディレクトリで別terminalから実行する(地図はそのディレクトリに書かれる)|
 |`localization`|MAPを選んで自己位置推定を実行|whill_odometry・NDT・EKF を起動する(実機用)。車椅子は `localization white` のように色を付ける(既定は `red`。色と同じ名前の環境 `env:=<色>` で起動する。`localization gazebo` も可)。`localization white SC10_4_0.05` のように地図も付けると、選ぶ画面を出さずに起動する(名前なら `/root/ros2_ws/map/` の中、パスでもよい)|
 |`odometry`|`whill_odometry` のみを起動||
 |`drive`|テスト走行と録画|`drive red spin5`（`gazebo`・`red`・`blue`・`white`。bag 名を省くと `red_spin5_<年月日_時分秒>`。`drive red spin5 <bag 名>` で名前を付ける。localization_tools の `drive/run_test.sh`）|
@@ -103,7 +103,7 @@ docker compose build --build-arg BRINGUP_BRANCH=<ブランチ> && docker compose
 |`calibration_params`|推定の設定を開く|localization_tools の `calibration/param/motion.yaml`（動き：止まる時間・角速度・周回数・直進の速度と時間。Gazebo・実機で共通）と `calibrate.yaml`（推定：区間の取り方・窓・直進の安定の判定など）|
 |`calibration_plan`|推定用の動きの計画|`calibration_plan red`（走る前に計算した軌跡を表示）|
 |`calibrate`|録画から推定だけ|`calibrate red red_calibration_20261015_153012`（bag 名かパス）|
-|`slam_params`|SLAM parameterを確認/編集*|保存後の次回起動時に反映される|
+|`slam_params`|SLAM parameterを確認/編集*|`slam_params blue` のように環境を付ける(既定 `red`)。`localization_bringup` の `param/<色>/lidarslam.yaml` を開く。保存後に `colcon build` してから次回起動時に反映される|
 |`lclz_params`|Matching(NDT) parameterを確認/編集*|`lclz_params blue` のように環境を付ける(既定 `red`)。`localization_bringup` の `param/<色>/pcl_localization.yaml` を開く。保存後に `colcon build` してから次回起動時に反映される|
 |`ekf_params`|EKF parameterを確認/編集*|同じく `param/<色>/ekf_localizer.yaml`(オドメトリの倍率 `odom_scale` もここ)|
 |`odom_params`|Odometry parameterを確認/編集*|同じく `param/<色>/whill_odometry.yaml`(実機の色だけ)|
@@ -116,6 +116,9 @@ docker compose build --build-arg BRINGUP_BRANCH=<ブランチ> && docker compose
 whill_node (WHILL側) ── /Drp5_whill_<色>/whill_node/motor_speed_ts ──▶ whill_odometry ── /wheelchair/odom ──▶ ekf_localizer ──▶ /ekf_pose, TF(map→base_link)
 VLP-16 ── /velodyne_points ──▶ pcl_localization ── /ndt_pose ──▶ ekf_localizer
 ```
+`lidarslam` のときは pcl_localization の代わりに scan_matcher（`/slam_pose` を EKF へ。`/current_pose`・`/map`・`/map_array`）と
+graph_based_slam（ループ閉じ込み、`/modified_map`、サービス `/map_save`）を起動する。scan_matcher も NDT と同じく EKF の TF を初期値にし、
+TF は出さない。EKF を起動しないとき（`use_ekf:=false`）は `pose_to_tf` が NDT・scan_matcher の解から TF(map→base_link) を出す。
 車椅子の色(`red`・`blue`・`white`)は launch の環境 `env:=<色>` で選ぶ(`localization` コマンドの既定は `red`。launch で `env` を付けないと NDT と EKF をコードの既定値で起動するだけ)。
 環境ごとの設定は `localization_bringup` の `param/<色>/`(`env.yaml`:起動するノード・取付の静的 TF、`<ノード名>.yaml`:各ノードのパラメータ)で変更する
 (詳細は [localization_bringup](https://github.com/MaeharaTakumi/localization_bringup))
@@ -135,7 +138,8 @@ ros2 launch localization_bringup localization.launch.py env:=gazebo map_path:=<P
 自己位置推定のノード(NDT・EKF・Odometry)はパッケージにパラメータファイルを置かず、`localization_bringup` の `param/<色>/` に環境ごとに全項目を書く
 (書いていない項目はコードの既定値。2026-11-11 から)
 ### SLAM
-`~/ros2_ws/src/lidarslam_ros2/lidarslam/param/lidarslam.yaml`
+`lidarslam` コマンド：`~/ros2_ws/src/localization_bringup/param/<色>/lidarslam.yaml`(scan_matcher・graph_based_slam の節)。
+lidarslam パッケージ単体の launch：`~/ros2_ws/src/lidarslam_ros2/lidarslam/param/lidarslam.yaml`
 
 https://github.com/MaeharaTakumi/lidarslam_ros2#params
 
