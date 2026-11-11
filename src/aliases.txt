@@ -18,9 +18,15 @@ alias slam_params='code ~/ros2_ws/src/lidarslam_ros2/lidarslam/param/lidarslam.y
 # .pcdマップを用いてMatching実行（whill_odometry、NDT、EKF を起動）。localization [red（既定）|blue|white|gazebo] [地図]
 alias localization='scanmatch'
 
-# params変更
-alias lclz_params='code ~/ros2_ws/src/lidar_localization/param/localization.yaml'
-alias ekf_params='code ~/ros2_ws/src/ekf_localizer/param/ekf.yaml'
+# params変更：環境（localization_bringup の param/<色>/）のノードの yaml を開く。lclz_params [red|blue|white|gazebo]（既定 red）
+# （開くのは src。変えたら colcon build してから起動する。書いていない項目はコードの既定値）
+localization_params_open() {
+  local f=~/ros2_ws/src/localization_bringup/param/${2:-red}/$1.yaml
+  [ -f "$f" ] || { echo "Error: no $f"; return 1; }
+  code "$f"
+}
+lclz_params() { localization_params_open pcl_localization "$@"; }
+ekf_params() { localization_params_open ekf_localizer "$@"; }
 
 
 
@@ -28,8 +34,8 @@ alias ekf_params='code ~/ros2_ws/src/ekf_localizer/param/ekf.yaml'
 # WHILL の motor_speed から /wheelchair/odom を配信（単体起動）
 alias odometry='ros2 launch whill_odometry odometry.launch.py'
 
-# params変更
-alias odom_params='code ~/ros2_ws/src/whill_odometry/param/odometry.yaml'
+# params変更（実機の色だけ）：odom_params [red|blue|white]（既定 red）
+odom_params() { localization_params_open whill_odometry "$@"; }
 
 
 
@@ -167,12 +173,12 @@ save_map_gui() {
   fi
 }
 
-# 環境（localization_bringup の param/env/<名前>.yaml。red・blue・white（実機の車椅子）・gazebo）があるか確かめる
+# 環境（localization_bringup の param/<名前>/。red・blue・white（実機の車椅子）・gazebo）があるか確かめる
 localization_env_check() {
-  local env_dir
-  env_dir=$(ros2 pkg prefix localization_bringup 2>/dev/null)/share/localization_bringup/param/env
-  if [ ! -f "${env_dir}/$1.yaml" ]; then
-    echo "Error: no environment \"$1\". Available: $(ls "${env_dir}" 2>/dev/null | sed 's/\.yaml$//' | tr '\n' ' ')"
+  local param_dir
+  param_dir=$(ros2 pkg prefix localization_bringup 2>/dev/null)/share/localization_bringup/param
+  if [ ! -f "${param_dir}/$1/env.yaml" ]; then
+    echo "Error: no environment \"$1\". Available: $(cd "${param_dir}" 2>/dev/null && ls -d */ | tr -d / | tr '\n' ' ')"
     return 1
   fi
 }

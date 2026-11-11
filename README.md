@@ -104,9 +104,9 @@ docker compose build --build-arg BRINGUP_BRANCH=<ブランチ> && docker compose
 |`calibration_plan`|推定用の動きの計画|`calibration_plan red`（走る前に計算した軌跡を表示）|
 |`calibrate`|録画から推定だけ|`calibrate red red_calibration_20261015_153012`（bag 名かパス）|
 |`slam_params`|SLAM parameterを確認/編集*|保存後の次回起動時に反映される|
-|`lclz_params`|Matching(NDT) parameterを確認/編集*|保存後の次回起動時に反映される|
-|`ekf_params`|EKF parameterを確認/編集*|保存後の次回起動時に反映される|
-|`odom_params`|Odometry parameterを確認/編集*|保存後の次回起動時に反映される|
+|`lclz_params`|Matching(NDT) parameterを確認/編集*|`lclz_params blue` のように環境を付ける(既定 `red`)。`localization_bringup` の `param/<色>/pcl_localization.yaml` を開く。保存後に `colcon build` してから次回起動時に反映される|
+|`ekf_params`|EKF parameterを確認/編集*|同じく `param/<色>/ekf_localizer.yaml`(オドメトリの倍率 `odom_scale` もここ)|
+|`odom_params`|Odometry parameterを確認/編集*|同じく `param/<色>/whill_odometry.yaml`(実機の色だけ)|
 |`reload`|terminalの再読込||
 
 *: vscodeにAttachして実行
@@ -116,8 +116,8 @@ docker compose build --build-arg BRINGUP_BRANCH=<ブランチ> && docker compose
 whill_node (WHILL側) ── /Drp5_whill_<色>/whill_node/motor_speed_ts ──▶ whill_odometry ── /wheelchair/odom ──▶ ekf_localizer ──▶ /ekf_pose, TF(map→base_link)
 VLP-16 ── /velodyne_points ──▶ pcl_localization ── /ndt_pose ──▶ ekf_localizer
 ```
-車椅子の色(`red`・`blue`・`white`)は launch の環境 `env:=<色>`(既定は `red`)で選ぶ。
-トピック名・フレーム名などの環境ごとの設定は `localization_bringup` の `param/env/<色>.yaml` で変更する(3 つは色だけが違う)
+車椅子の色(`red`・`blue`・`white`)は launch の環境 `env:=<色>` で選ぶ(`localization` コマンドの既定は `red`。launch で `env` を付けないと NDT と EKF をコードの既定値で起動するだけ)。
+環境ごとの設定は `localization_bringup` の `param/<色>/`(`env.yaml`:起動するノード・取付の静的 TF、`<ノード名>.yaml`:各ノードのパラメータ)で変更する
 (詳細は [localization_bringup](https://github.com/MaeharaTakumi/localization_bringup))
 
 ## Gazebo で使う場合
@@ -131,25 +131,29 @@ ros2 launch localization_bringup localization.launch.py env:=gazebo map_path:=<P
 新しい terminal で `localization` を実行する
 
 # Paramter変更時の参照箇所
-`slam_params`/`lclz_params`/`ekf_params`/`odom_params`が使えない場合に参照
+`slam_params`/`lclz_params`/`ekf_params`/`odom_params`が使えない場合に参照。
+自己位置推定のノード(NDT・EKF・Odometry)はパッケージにパラメータファイルを置かず、`localization_bringup` の `param/<色>/` に環境ごとに全項目を書く
+(書いていない項目はコードの既定値。2026-11-11 から)
 ### SLAM
 `~/ros2_ws/src/lidarslam_ros2/lidarslam/param/lidarslam.yaml`
 
 https://github.com/MaeharaTakumi/lidarslam_ros2#params
 
 ### Matching(NDT)
-`~/ros2_ws/src/lidar_localization/param/localization.yaml`
+`~/ros2_ws/src/localization_bringup/param/<色>/pcl_localization.yaml`
 
 https://github.com/MaeharaTakumi/lidar_localization#params
 
 ### EKF
-`~/ros2_ws/src/ekf_localizer/param/ekf.yaml`
+`~/ros2_ws/src/localization_bringup/param/<色>/ekf_localizer.yaml`(オドメトリの倍率 `odom_scale`・観測ノイズ R・時刻 `odom_stamp_mode` も)
+
+https://github.com/MaeharaTakumi/ekf_localizer#パラメータ
 
 ### Odometry
-`~/ros2_ws/src/whill_odometry/param/odometry.yaml`(オドメトリの倍率は環境ファイルの `parameters.odom_relay`、観測ノイズ R は `ekf_localizer` の `param/ekf.yaml`)
+`~/ros2_ws/src/localization_bringup/param/<色>/whill_odometry.yaml`
 
-### 環境ごとの設定(トピック名・取付位置・パラメータの上書き)
-`~/ros2_ws/src/localization_bringup/param/env/red.yaml`(`blue.yaml`・`white.yaml` も同じ内容で色だけが違う)
+### 環境ごとの設定(起動するノード・取付位置)
+`~/ros2_ws/src/localization_bringup/param/<色>/env.yaml`
 
 # コンテナ内から git push する場合
 `~/ros2_ws/src` の各リポジトリは、pull は HTTPS(鍵不要)、push は SSH(`git@github.com:MaeharaTakumi/...`)に設定してある。
