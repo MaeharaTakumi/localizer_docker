@@ -95,6 +95,7 @@ docker compose build --build-arg BRINGUP_BRANCH=<ブランチ> && docker compose
 |`lidarslam`|NDT-SLAMを実行|lidarslam(scan_matcher・graph_based_slam)と EKF を起動する。`lidarslam blue` のように環境を付ける(既定は `red`。`localization` と同じ `param/<色>/` を使い、SLAM のパラメータは `param/<色>/lidarslam.yaml`)。`localization_bringup` の `lidarslam.launch.py`。lidarslam パッケージ単体は `ros2 launch lidarslam lidarslam.launch.py`|
 |`savemap`|MAP(.pcd)を保存|`lidarslam`実行中に、`lidarslam` を実行したのと同じディレクトリで別terminalから実行する(地図はそのディレクトリに書かれる)|
 |`localization`|MAPを選んで自己位置推定を実行|whill_odometry・NDT・EKF を起動する(実機用)。車椅子は `localization white` のように色を付ける(既定は `red`。色と同じ名前の環境 `env:=<色>` で起動する。`localization gazebo` も可)。`localization white SC10_4_0.05` のように地図も付けると、選ぶ画面を出さずに起動する(名前なら `/root/ros2_ws/map/` の中、パスでもよい)|
+|`scanmatch_cli`|地図を指定して自己位置推定を実行(画面なし)|`scanmatch_cli <地図> [red\|blue\|white\|gazebo]`(環境の既定は `red`。地図は名前でもパスでもよい)。`localization <色> <地図>` と同じ|
 |`odometry`|`whill_odometry` のみを起動||
 |`drive`|テスト走行と録画|`drive red spin5`（`gazebo`・`red`・`blue`・`white`。bag 名を省くと `red_spin5_<年月日_時分秒>`。`drive red spin5 <bag 名>` で名前を付ける。localization_tools の `drive/run_test.sh`）|
 |`drive_list`|テスト走行の動きの一覧|`drive_list red spin5` なら走る前の計画（計算した軌跡）を表示|
