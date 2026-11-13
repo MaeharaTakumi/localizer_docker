@@ -103,7 +103,6 @@ docker compose build --build-arg BRINGUP_BRANCH=<ブランチ> && docker compose
 |`calibration`|パラメータ推定（観測ノイズ R・オドメトリの倍率・LiDAR の取付）|`calibration red`：推定用の動き（その場で左に 4 周 → 止まる → 片道の直進）で走って録画し、続けて推定する。結果は `~/ros2_ws/fig/calibration/<bag 名>/summary.yaml`（env には書き込まない）。bag 名を省くと `red_calibration_<年月日_時分秒>`|
 |`calibration_params`|推定の設定を開く|localization_tools の `calibration/param/motion.yaml`（動き：止まる時間・角速度・周回数・直進の速度と時間。Gazebo・実機で共通）と `calibrate.yaml`（推定：区間の取り方・窓・直進の安定の判定など）|
 |`calibration_plan`|推定用の動きの計画|`calibration_plan red`（走る前に計算した軌跡を表示）|
-|`calibrate`|録画から推定だけ|`calibrate red red_calibration_20261015_153012`（bag 名かパス）|
 |`slam_params`|SLAM parameterを確認/編集*|`slam_params blue` のように環境を付ける(既定 `red`)。`localization_bringup` の `param/<色>/lidarslam.yaml` を開く。保存後に `colcon build` してから次回起動時に反映される|
 |`lclz_params`|Matching(NDT) parameterを確認/編集*|`lclz_params blue` のように環境を付ける(既定 `red`)。`localization_bringup` の `param/<色>/pcl_localization.yaml` を開く。保存後に `colcon build` してから次回起動時に反映される|
 |`ekf_params`|EKF parameterを確認/編集*|同じく `param/<色>/ekf_localizer.yaml`(オドメトリの倍率 `odom_scale` もここ)|

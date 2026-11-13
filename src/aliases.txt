@@ -74,15 +74,6 @@ alias calibration_params='code ~/ros2_ws/localization_tools/calibration/param/mo
 # 推定用の動きの計画（走る前に計算した軌跡）：calibration_plan <gazebo|red|blue|white>
 alias calibration_plan='python3 ~/ros2_ws/localization_tools/calibration/motion.py'
 
-# 録画から推定だけ：calibrate <gazebo|red|blue|white> <bag 名かパス>（bag 名なら ~/ros2_ws/bags/<gazebo|real>/ の中）
-calibrate() {
-  if [ $# -lt 2 ]; then echo "Usage: calibrate <gazebo|red|blue|white> <bag>"; return 1; fi
-  local bag=$2 source=real
-  [ "$1" = gazebo ] && source=gazebo
-  case "$bag" in */*) ;; *) bag=/root/ros2_ws/bags/$source/$bag;; esac
-  python3 ~/ros2_ws/localization_tools/calibration/calibrate.py "$1" "$bag"
-}
-
 
 
 
